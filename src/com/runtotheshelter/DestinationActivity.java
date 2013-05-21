@@ -28,7 +28,7 @@ import android.content.Intent;
 import android.content.pm.FeatureInfo;
 
 
-public class DestinationActivity extends Activity implements LocationListener, LocationSource{
+public class DestinationActivity extends Activity implements LocationListener, LocationSource, OnTaskCompleted{
 
 	GoogleMap mMap;
     //MapFragment mMapFragment;
@@ -88,8 +88,7 @@ public class DestinationActivity extends Activity implements LocationListener, L
             //Move map to current location
             mMap.moveCamera(CameraUpdateFactory.newLatLng(startLocation));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(14));
-            //Display blue marker
-            mMap.setMyLocationEnabled(true); 
+            //Remove buttons if touch control capable
             for(FeatureInfo feature : getPackageManager().getSystemAvailableFeatures())
          	   if("android.hardware.touchscreen.multitouch".equals(feature.name)){
          		   mMap.getUiSettings().setZoomControlsEnabled(false);
@@ -101,37 +100,24 @@ public class DestinationActivity extends Activity implements LocationListener, L
             @Override
             public void onMapClick(LatLng point)
             {
-            	Log.d("Destination", "Lat "+point.latitude+", Lon"+point.longitude);
             	destination = new LatLng(point.latitude, point.longitude);
             	mMap.clear(); //Remove other marker
             	
             	//Have to create new marker because maps had to clear route poly lines
 	        	MarkerOptions markerOptions = new MarkerOptions().draggable(true);
 	            markerOptions.position(destination);
+	            
+
+    	        // Setting custom icon for the marker house
 	            shelterMarker = mMap.addMarker(markerOptions);
-    	        
-    	        
-    	        // Setting custom icon for the marker either missle or explosion
     	        shelterMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.shelter));
     	        
             	
             	RoutePlan r = new RoutePlan(startLocation,destination,GMapV2Direction.MODE_WALKING);
 
-            	try{
-            		
-            		routeInfo = new GMapV2Direction().execute(r).get();
-            		
-            		PolylineOptions rectLine = new PolylineOptions().width(8).color(Color.argb(98, 123, 104, 238));
-
-                	for(int i = 0 ; i < routeInfo.directionPoint.size() ; i++) {          
-                		rectLine.add(routeInfo.directionPoint.get(i));
-                	}
-
-                	mMap.addPolyline(rectLine);
-                	
-            	}catch(Exception e){
-            		e.printStackTrace();
-            	}
+            	
+            	GMapV2Direction t = new GMapV2Direction(DestinationActivity.this);
+            	t.execute(r);
 
             	
             }
@@ -141,15 +127,15 @@ public class DestinationActivity extends Activity implements LocationListener, L
     }
 
     private void setUpMapIfNeeded() {
-        if (mMap == null) {
+        if (mMap == null) 
         	mMap = ((MapFragment) getFragmentManager().findFragmentById( R.id.map)).getMap();
-            if (mMap != null) {
-            	mMap.setMyLocationEnabled(true);
-                // Set default zoom
-                //mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
-            }
-            mMap.setLocationSource(this);
+        if (mMap != null) {
+        	mMap.setMyLocationEnabled(true);
+            // Set default zoom
+            //mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
         }
+        mMap.setLocationSource(this);
+        
     }
 
 	@Override
@@ -200,6 +186,22 @@ public class DestinationActivity extends Activity implements LocationListener, L
 		Intent intent = new Intent(DestinationActivity.this, OptionsActivity.class);
 		
 		DestinationActivity.this.startActivity(intent);	
+	}
+
+
+
+	@Override
+	public void onTaskCompleted(RouteInformation o) {
+		
+	
+		routeInfo = o;
+		PolylineOptions rectLine = new PolylineOptions().width(8).color(Color.argb(98, 123, 104, 238));
+
+    	for(int i = 0 ; i < routeInfo.directionPoint.size() ; i++) {          
+    		rectLine.add(routeInfo.directionPoint.get(i));
+    	}
+
+    	mMap.addPolyline(rectLine);
 	}
 
 }

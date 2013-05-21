@@ -30,6 +30,12 @@ public class GMapV2Direction extends AsyncTask<RoutePlan, Void, RouteInformation
 	public final static String MODE_DRIVING = "driving";
     public final static String MODE_WALKING = "walking";
     
+    private OnTaskCompleted listener;
+
+    public GMapV2Direction(OnTaskCompleted listener){
+        this.listener=listener;
+    }
+    
     public GMapV2Direction() { }
 
     public Document getDocument(LatLng start, LatLng end, String mode) {
@@ -196,6 +202,11 @@ public class GMapV2Direction extends AsyncTask<RoutePlan, Void, RouteInformation
     	String dAddress = md.getEndAddress(doc);
     	
     	return new RouteInformation(params[0], directionPoint, duration, distance, sAddress, dAddress);
-    	
-	}
+	}	
+	
+
+	 protected void onPostExecute(RouteInformation o){
+	        //your stuff
+	        listener.onTaskCompleted(o);
+	    }
 }
