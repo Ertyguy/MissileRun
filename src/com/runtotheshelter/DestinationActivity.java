@@ -23,16 +23,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
-//import android.app.FragmentTransaction;
 import android.content.pm.FeatureInfo;
 
 
 public class DestinationActivity extends Activity implements LocationListener, LocationSource, OnTaskCompleted{
 
 	GoogleMap mMap;
-    //MapFragment mMapFragment;
-    
+
     private OnLocationChangedListener mListener;
     private LocationManager locationManager;
     private Location location;    
@@ -42,6 +41,7 @@ public class DestinationActivity extends Activity implements LocationListener, L
     private RouteInformation routeInfo;
 
     private Marker shelterMarker;
+    private ProgressDialog progress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +50,7 @@ public class DestinationActivity extends Activity implements LocationListener, L
         //mMapFragment = MapFragment.newInstance();
         
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        /*
+        
         if(locationManager != null)
         {
         	boolean gpsIsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -67,24 +67,26 @@ public class DestinationActivity extends Activity implements LocationListener, L
             else
             {
                 Log.d("locationManager", "Something is disabled mainActivity");
+                startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), 0);
             }
         } else
         {
         	 Log.d("locationManager", "Manager is null, this is bad");
         }
-*/
-        //setup map
-        mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
-        this.setUpMapIfNeeded();
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        
 
+        
+        this.setUpMapIfNeeded();
+        
+        
+        //location = locationManager.
         location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Toast.makeText(DestinationActivity.this, "location:"+location, Toast.LENGTH_SHORT).show();
         if (location == null)
             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         if (location != null) {
             
             startLocation = new LatLng(location.getLatitude(),location.getLongitude());
+            Toast.makeText(DestinationActivity.this, "lat:"+location.getLatitude()+", lon:"+location.getLongitude(), Toast.LENGTH_SHORT).show();
             //Move map to current location
             mMap.moveCamera(CameraUpdateFactory.newLatLng(startLocation));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(14));
@@ -101,23 +103,24 @@ public class DestinationActivity extends Activity implements LocationListener, L
             public void onMapClick(LatLng point)
             {
             	destination = new LatLng(point.latitude, point.longitude);
-            	mMap.clear(); //Remove other marker
+            	mMap.clear(); //Have to create new marker because maps had to clear route poly lines
             	
-            	//Have to create new marker because maps had to clear route poly lines
 	        	MarkerOptions markerOptions = new MarkerOptions().draggable(true);
 	            markerOptions.position(destination);
-	            
-
     	        // Setting custom icon for the marker house
 	            shelterMarker = mMap.addMarker(markerOptions);
     	        shelterMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.shelter));
     	        
-            	
-            	RoutePlan r = new RoutePlan(startLocation,destination,GMapV2Direction.MODE_WALKING);
-
+    	        if(startLocation == null){
+    	        	Toast.makeText(DestinationActivity.this, "Cannot find current location", Toast.LENGTH_SHORT).show();
+    	        	return;
+    	        }
+    	        
+    	        progress = ProgressDialog.show(DestinationActivity.this,"Please Wait","Getting route directions",true,false,null);
+            	RoutePlan routePlan = new RoutePlan(startLocation,destination,GMapV2Direction.MODE_WALKING);
             	
             	GMapV2Direction t = new GMapV2Direction(DestinationActivity.this);
-            	t.execute(r);
+            	t.execute(routePlan);
 
             	
             }
@@ -135,19 +138,18 @@ public class DestinationActivity extends Activity implements LocationListener, L
             //mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
         }
         mMap.setLocationSource(this);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         
     }
 
 	@Override
 	public void activate(OnLocationChangedListener listener) {
-			mListener = listener;
-		
+		mListener = listener;
 	}
 
 	@Override
 	public void deactivate() {
 		mListener = null; 
-		
 	}
 
 	@Override
@@ -192,8 +194,11 @@ public class DestinationActivity extends Activity implements LocationListener, L
 
 	@Override
 	public void onTaskCompleted(RouteInformation o) {
-		
-	
+		progress.dismiss();
+		if(o.directionPoint == null){ //Search failed
+			Toast.makeText(this, "Failed to communicate with Google maps", Toast.LENGTH_SHORT).show();
+			return;
+		}
 		routeInfo = o;
 		PolylineOptions rectLine = new PolylineOptions().width(8).color(Color.argb(98, 123, 104, 238));
 
@@ -202,6 +207,7 @@ public class DestinationActivity extends Activity implements LocationListener, L
     	}
 
     	mMap.addPolyline(rectLine);
+    	
 	}
 
 }

@@ -133,7 +133,7 @@ public class RunningActivity extends Activity implements LocationListener, Locat
     		   mMap.getUiSettings().setZoomControlsEnabled(false);
     	   }
         
-        missleTimer = new Timer();
+        missleTimer = new Timer(); 
         missleTimer.scheduleAtFixedRate(new TimerTask() {			
 			@Override
 			public void run() {
@@ -179,10 +179,10 @@ public class RunningActivity extends Activity implements LocationListener, Locat
 			TextView text = (TextView) findViewById(R.id.countdowntimer);
 			text.setText(appState.detonationTime+" seconds");
 			
-			//Set Missle Icon to display and move
+			//Set Missile Icon to display and move
 			//missleMap.clear();
 
-	        // Setting position for the marker
+	        //Setting position for the marker
 			double lng = appState.routeInformation.plan.destination.longitude-appState.missleLaunchDistance+((appState.missleLaunchDistance/appState.setDetonationTime) *(appState.setDetonationTime-appState.detonationTime));
 
 	        LatLng pos = new LatLng(appState.routeInformation.plan.destination.latitude-1, lng);
@@ -197,7 +197,7 @@ public class RunningActivity extends Activity implements LocationListener, Locat
 	        }
 	        
 	        
-	        // Setting custom icon for the marker either missle or explosion
+	        // Setting custom icon for the marker either missile or explosion
 	        if(appState.detonationTime > 0){
 	        	missileMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.sidemissile));
 	        }else{
@@ -207,22 +207,23 @@ public class RunningActivity extends Activity implements LocationListener, Locat
 		}
 	};
 
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.running, menu);
 		return true;
-	}
+	}*/
     private void setUpMapIfNeeded() {
         if (mMap == null) {
         	mMap = ((MapFragment) getFragmentManager().findFragmentById( R.id.map)).getMap();
-            if (mMap != null) {
+        }
+        if (mMap != null) {
             	mMap.setMyLocationEnabled(true);
                 // Set default zoom
                 //mMap.moveCamera(CameraUpdateFactory.zoomTo(15f));
             }
             mMap.setLocationSource(this);
-        }
+        
     }
 
 	@Override

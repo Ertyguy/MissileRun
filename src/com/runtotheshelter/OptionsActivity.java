@@ -42,7 +42,7 @@ public class OptionsActivity extends Activity {
 	
 	public void launchSelected(View view){
 		RouteApplication appState = ((RouteApplication)this.getApplication());
-		EditText min = (EditText) findViewById(R.id.minutes);
+		EditText min = (EditText) findViewById(R.id.timepicker_input);
 		appState.detonationTime = Integer.parseInt(min.getText().toString())*60; //Save Information in global singleton
 		appState.setDetonationTime = appState.detonationTime;
 		Intent intent = new Intent(OptionsActivity.this, RunningActivity.class);

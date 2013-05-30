@@ -39,7 +39,7 @@ public class GMapV2Direction extends AsyncTask<RoutePlan, Void, RouteInformation
     public GMapV2Direction() { }
 
     public Document getDocument(LatLng start, LatLng end, String mode) {
-        String url = "http://maps.googleapis.com/maps/api/directions/xml?" 
+    	String url = "http://maps.googleapis.com/maps/api/directions/xml?" 
                 + "origin=" + start.latitude + "," + start.longitude  
                 + "&destination=" + end.latitude + "," + end.longitude 
                 + "&sensor=false&units=metric&mode="+mode;
