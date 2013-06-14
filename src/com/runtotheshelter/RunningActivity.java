@@ -42,7 +42,7 @@ public class RunningActivity extends Activity implements LocationListener, Locat
 	private Location location;  
 	
 	
-	private Timer missleTimer;
+	private Timer missileTimer;
 	private Marker missileMarker;
 	private Marker shelterMarker;
 	private boolean gpsIsEnabled;
@@ -80,12 +80,17 @@ public class RunningActivity extends Activity implements LocationListener, Locat
         	 Log.e("locationManager", "Manager is null, this is bad");
         }
 		
-		mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
-        this.setUpMapIfNeeded();
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
+        this.setUpMapsIfNeeded();
         
-
+        
+        for(FeatureInfo feature : getPackageManager().getSystemAvailableFeatures()){
+    	   if("android.hardware.touchscreen.multitouch".equals(feature.name)){
+    		   missileMap.getUiSettings().setZoomControlsEnabled(false);
+    		   mMap.getUiSettings().setZoomControlsEnabled(false);
+    	   }
+        }
+        
         location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if (location == null)
             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -107,7 +112,7 @@ public class RunningActivity extends Activity implements LocationListener, Locat
         	MarkerOptions markerOptions = new MarkerOptions().draggable(true);
             markerOptions.position(appState.routeInformation.plan.destination);
             shelterMarker = mMap.addMarker(markerOptions);
-	        // Setting custom icon for the marker either missle or explosion
+	        // Setting custom icon for the marker either missile or explosion
 	        shelterMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.shelter));
 	        
             PolylineOptions rectLine = new PolylineOptions().width(8).color(Color.argb(98, 123, 104, 238));
@@ -123,18 +128,9 @@ public class RunningActivity extends Activity implements LocationListener, Locat
              .strokeColor(Color.argb(98, 123, 104, 238)));
         	*/
         }
-        	
-        missileMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.misslemap)).getMap();
-        missileMap.setMyLocationEnabled(true); 
-        missileMap.getUiSettings().setAllGesturesEnabled(false);
-       for(FeatureInfo feature : getPackageManager().getSystemAvailableFeatures())
-    	   if("android.hardware.touchscreen.multitouch".equals(feature.name)){
-    		   missileMap.getUiSettings().setZoomControlsEnabled(false);
-    		   mMap.getUiSettings().setZoomControlsEnabled(false);
-    	   }
-        
-        missleTimer = new Timer(); 
-        missleTimer.scheduleAtFixedRate(new TimerTask() {			
+
+        missileTimer = new Timer(); 
+        missileTimer.scheduleAtFixedRate(new TimerTask() {			
 			@Override
 			public void run() {
 				if(appState.detonationTime <= 0){
@@ -164,7 +160,7 @@ public class RunningActivity extends Activity implements LocationListener, Locat
 	}
 	
 	private void PostDetination(){
-		missleTimer.cancel();
+		missileTimer.cancel();
 
 		appState.timeRemaining = appState.detonationTime;
 		
@@ -213,9 +209,17 @@ public class RunningActivity extends Activity implements LocationListener, Locat
 		getMenuInflater().inflate(R.menu.running, menu);
 		return true;
 	}*/
-    private void setUpMapIfNeeded() {
+    private void setUpMapsIfNeeded() {
+    	
+		mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.runningmap)).getMap();
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        missileMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.missilemap)).getMap();
+        missileMap.setMyLocationEnabled(true); 
+        missileMap.getUiSettings().setAllGesturesEnabled(false);
+        
         if (mMap == null) {
-        	mMap = ((MapFragment) getFragmentManager().findFragmentById( R.id.map)).getMap();
+        	mMap = ((MapFragment) getFragmentManager().findFragmentById( R.id.runningmap)).getMap();
         }
         if (mMap != null) {
             	mMap.setMyLocationEnabled(true);

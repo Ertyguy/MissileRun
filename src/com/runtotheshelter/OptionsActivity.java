@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 
 public class OptionsActivity extends Activity {
@@ -29,8 +30,11 @@ public class OptionsActivity extends Activity {
 		text.setText(routeInformation.distance+" m");
 		
 		Log.d("test",routeInformation.toString());
-	      
-		
+		NumberPicker np = (NumberPicker) findViewById(R.id.timepicker_input);
+		np.setMinValue(1);
+		np.setMaxValue(59);
+		np.setWrapSelectorWheel(true);
+		np.setValue(1);
 	}
 
 	@Override
@@ -42,8 +46,10 @@ public class OptionsActivity extends Activity {
 	
 	public void launchSelected(View view){
 		RouteApplication appState = ((RouteApplication)this.getApplication());
-		EditText min = (EditText) findViewById(R.id.timepicker_input);
-		appState.detonationTime = Integer.parseInt(min.getText().toString())*60; //Save Information in global singleton
+		
+		NumberPicker timepicker_input = (NumberPicker)findViewById(R.id.timepicker_input);
+	    int min = timepicker_input.getValue();
+		appState.detonationTime = min*60; //Save Information in global singleton
 		appState.setDetonationTime = appState.detonationTime;
 		Intent intent = new Intent(OptionsActivity.this, RunningActivity.class);
 		
